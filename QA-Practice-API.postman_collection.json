@@ -1,0 +1,440 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-1111-4000-8000-000000000001",
+    "description": "API testing practice for QA roles: real requests with assertions against two public demo APIs (JSONPlaceholder and httpbin). No API key needed. Covers CRUD, status codes, error cases (400/401/404), auth failures, query params and schema/contract checks.\n\nEN: Import the collection and the environment file into Postman, or run it from the terminal with Newman: npx newman run QA-Practice-API.postman_collection.json -e QA-Practice-API.postman_environment.json\n\nES: Importa la colecci\u00f3n y el entorno en Postman, o corre todo desde la terminal con Newman (ver README.md).",
+    "name": "QA Practice API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "description": "CRUD against JSONPlaceholder, a free fake REST API for testing. Its data is synthetic demo data, not real users.",
+      "item": [
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array of 10 users', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.eql(10);",
+                  "});",
+                  "",
+                  "pm.test('Every user has id, name, username and email', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.forEach(function (user) {",
+                  "        pm.expect(user).to.have.property('id');",
+                  "        pm.expect(user).to.have.property('name');",
+                  "        pm.expect(user).to.have.property('username');",
+                  "        pm.expect(user).to.have.property('email');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('First user is Leanne Graham (known fixture data)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData[0].name).to.eql('Leanne Graham');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET All users",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlPlaceholder}}/users"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns user with id 1', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.id).to.eql(1);",
+                  "    pm.expect(jsonData.name).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test('Email looks like an email', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.email).to.include('@');",
+                  "});",
+                  "",
+                  "pm.test('Address and company are present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.address).to.have.property('city');",
+                  "    pm.expect(jsonData.company).to.have.property('name');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET User by ID",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlPlaceholder}}/users/1"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 for an unknown user', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Unknown user (404)",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlPlaceholder}}/users/999"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Returns 10 posts for user 1', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData.length).to.eql(10);",
+                  "});",
+                  "",
+                  "pm.test('Every post belongs to user 1 and has title and body', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.forEach(function (post) {",
+                  "        pm.expect(post.userId).to.eql(1);",
+                  "        pm.expect(post.title).to.be.a('string').and.not.empty;",
+                  "        pm.expect(post.body).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Posts by user",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlPlaceholder}}/posts?userId=1"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response echoes the sent data and adds an id', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title).to.eql('QA practice post');",
+                  "    pm.expect(jsonData.userId).to.eql(1);",
+                  "    pm.expect(jsonData.id).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "POST Create post",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"title\": \"QA practice post\",\n  \"body\": \"Created by the QA Practice API collection\",\n  \"userId\": 1\n}"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "url": "{{baseUrlPlaceholder}}/posts"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Title was updated and id is still 1', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.title).to.eql('Updated title');",
+                  "    pm.expect(jsonData.id).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "PUT Update post",
+          "request": {
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"id\": 1,\n  \"title\": \"Updated title\",\n  \"body\": \"Updated body\",\n  \"userId\": 1\n}"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "url": "{{baseUrlPlaceholder}}/posts/1"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "DELETE Post",
+          "request": {
+            "header": [],
+            "method": "DELETE",
+            "url": "{{baseUrlPlaceholder}}/posts/1"
+          }
+        }
+      ],
+      "name": "01 - JSONPlaceholder (CRUD)"
+    },
+    {
+      "description": "Error cases and auth failures against httpbin, a free HTTP request/response test service.",
+      "item": [
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Status 200",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlHttpbin}}/status/200"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Status 404",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlHttpbin}}/status/404"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Status 400",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlHttpbin}}/status/400"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401 without credentials', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Basic auth without credentials (401)",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlHttpbin}}/basic-auth/user/passwd"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401 without a token', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Bearer without token (401)",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlHttpbin}}/bearer"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Server echoes the query param back', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.args.test).to.eql('qa');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET Echo query params",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlHttpbin}}/get?test=qa"
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Every email matches an email pattern', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.forEach(function (user) {",
+                  "        pm.expect(user.email).to.match(/.+@.+\\..+/);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Every user has geo coordinates as strings', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.forEach(function (user) {",
+                  "        pm.expect(user.address.geo.lat).to.be.a('string');",
+                  "        pm.expect(user.address.geo.lng).to.be.a('string');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "GET All users - schema check",
+          "request": {
+            "header": [],
+            "method": "GET",
+            "url": "{{baseUrlPlaceholder}}/users"
+          }
+        }
+      ],
+      "name": "02 - httpbin (errors and auth)"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrlPlaceholder",
+      "value": "https://jsonplaceholder.typicode.com"
+    },
+    {
+      "key": "baseUrlHttpbin",
+      "value": "https://httpbin.org"
+    }
+  ]
+}
